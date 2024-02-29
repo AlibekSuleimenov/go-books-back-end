@@ -5,11 +5,13 @@ import (
 	"net/http"
 )
 
+// JSONResponse
 type JSONResponse struct {
 	Error   bool   `json:"error"`
 	Message string `json:"message"`
 }
 
+// Login is the handler used to authenticate users
 func (app *Application) Login(w http.ResponseWriter, r *http.Request) {
 	type credentials struct {
 		Username string `json:"email"`
