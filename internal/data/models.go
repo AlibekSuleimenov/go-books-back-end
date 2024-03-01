@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -210,6 +211,42 @@ func (u *User) Insert(user User) (int, error) {
 	}
 
 	return newID, nil
+}
+
+// ResetPassword updates the User password in db
+func (u *User) ResetPassword(password string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return err
+	}
+
+	stmt := `update users set password = $1 where id = $2`
+
+	_, err = db.ExecContext(ctx, stmt, hashedPassword, u.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// PasswordMatches checks the provided by the User password with the one stored in db, return true if password matches, and false otherwise
+func (u *User) PasswordMatches(plainText string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainText))
+	if err != nil {
+		switch {
+		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+			// invalid password
+			return false, nil
+		default:
+			return false, err
+		}
+	}
+
+	return true, nil
 }
 
 type Token struct {
