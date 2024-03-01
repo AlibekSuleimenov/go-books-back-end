@@ -8,8 +8,10 @@ import (
 type JSONResponse struct {
 	Error   bool        `json:"error"`
 	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	Data    interface{} `json:"data,omitempty"`
 }
+
+type Envelope map[string]interface{}
 
 // Login is the handler used to authenticate users
 func (app *Application) Login(w http.ResponseWriter, r *http.Request) {
