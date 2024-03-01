@@ -411,7 +411,7 @@ func (t *Token) Insert(token Token, user User) error {
 		token.TokenHash,
 		time.Now(),
 		time.Now(),
-		token.UserID,
+		token.Expiry,
 	)
 	if err != nil {
 		return err

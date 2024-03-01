@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"net/http"
+	"time"
 )
 
 // routes generates routes and attaches them to handlers
@@ -62,6 +63,62 @@ func (app *Application) routes() http.Handler {
 		}
 
 		app.writeJSON(w, http.StatusOK, newUser)
+	})
+
+	mux.Get("/test-generate-token", func(w http.ResponseWriter, r *http.Request) {
+		token, err := app.Models.User.Token.GenerateToken(2, 60*time.Minute)
+		if err != nil {
+			app.ErrorLog.Println(err)
+			app.errorJSON(w, err, http.StatusForbidden)
+			return
+		}
+
+		token.Email = "j.doe@mail.com"
+		token.CreatedAt = time.Now()
+		token.UpdatedAt = time.Now()
+
+		payload := JSONResponse{
+			Error:   false,
+			Message: "success",
+			Data:    token,
+		}
+
+		app.writeJSON(w, http.StatusOK, payload)
+	})
+
+	mux.Get("/test-save-token", func(w http.ResponseWriter, r *http.Request) {
+		token, err := app.Models.User.Token.GenerateToken(2, 60*time.Minute)
+		if err != nil {
+			app.ErrorLog.Println(err)
+			app.errorJSON(w, err, http.StatusForbidden)
+			return
+		}
+
+		user, err := app.Models.User.GetByID(2)
+		if err != nil {
+			app.ErrorLog.Println(err)
+			app.errorJSON(w, err, http.StatusForbidden)
+			return
+		}
+
+		token.UserID = user.ID
+		token.CreatedAt = time.Now()
+		token.UpdatedAt = time.Now()
+
+		err = token.Insert(*token, *user)
+		if err != nil {
+			app.ErrorLog.Println(err)
+			app.errorJSON(w, err, http.StatusForbidden)
+			return
+		}
+
+		payload := JSONResponse{
+			Error:   false,
+			Message: "success",
+			Data:    token,
+		}
+
+		app.writeJSON(w, http.StatusOK, payload)
 	})
 
 	return mux

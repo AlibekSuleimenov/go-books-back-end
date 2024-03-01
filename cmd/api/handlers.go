@@ -6,8 +6,9 @@ import (
 
 // JSONResponse
 type JSONResponse struct {
-	Error   bool   `json:"error"`
-	Message string `json:"message"`
+	Error   bool        `json:"error"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
 }
 
 // Login is the handler used to authenticate users
