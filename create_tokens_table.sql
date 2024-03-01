@@ -40,3 +40,7 @@ alter table public.tokens
 
 comment on constraint tokens_user_id_fk on public.tokens is 'Foreign Key to Users table';
 
+CREATE SEQUENCE token_id_seq START WITH 1;
+
+ALTER TABLE tokens
+    ALTER COLUMN id SET DEFAULT nextval('token_id_seq');

@@ -29,3 +29,8 @@ comment on column users.updated_at is 'Updated At';
 
 alter table users
     owner to postgres;
+
+CREATE SEQUENCE user_id_seq START WITH 1;
+
+ALTER TABLE users
+    ALTER COLUMN id SET DEFAULT nextval('user_id_seq');
