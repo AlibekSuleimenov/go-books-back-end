@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/alibeksuleimenov/go-books-back-end/internal/data"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -22,6 +23,17 @@ func (app *Application) routes() http.Handler {
 
 	mux.Get("/users/login", app.Login)
 	mux.Post("/users/login", app.Login)
+
+	mux.Get("/users/all", func(w http.ResponseWriter, r *http.Request) {
+		var users data.User
+		all, err := users.GetAll()
+		if err != nil {
+			app.ErrorLog.Println(err)
+			return
+		}
+
+		app.writeJSON(w, http.StatusOK, all)
+	})
 
 	return mux
 }

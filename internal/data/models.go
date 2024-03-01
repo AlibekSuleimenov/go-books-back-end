@@ -1,8 +1,8 @@
 package data
 
 import (
+	"context"
 	"database/sql"
-	"golang.org/x/net/context"
 	"time"
 )
 
@@ -34,11 +34,16 @@ type User struct {
 	Token     Token     `json:"token"`
 }
 
+// GetAll returns all users from db
 func (u *User) GetAll() ([]*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	query := `select id, email, first_name, last_name, password, created_at, updated_at from users order by last_name`
+	query := `select
+                  id, email, first_name, last_name, password, created_at, updated_at
+              from 
+                  users 
+              order by last_name`
 
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
@@ -68,6 +73,110 @@ func (u *User) GetAll() ([]*User, error) {
 
 	return users, nil
 
+}
+
+// GetByEmail returns a single User from db filtered by Email field
+func (u *User) GetByEmail(email string) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `select
+                  id, email, first_name, last_name, password, created_at, updated_at
+              from
+                  users
+              where email = $1`
+
+	var user User
+
+	row := db.QueryRowContext(ctx, query, email)
+	err := row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+// GetByID returns a single User from db filtered by ID field
+func (u *User) GetByID(id int) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `select
+                  id, email, first_name, last_name, password, created_at, updated_at
+              from
+                  users
+              where id = $1`
+
+	var user User
+
+	row := db.QueryRowContext(ctx, query, id)
+	err := row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+// Update updates the User record in db
+func (u *User) Update() error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `update
+                users
+            set 
+                email = $1,
+                first_name = $2,
+                last_name = $3, 
+                updated_at = $4
+            where
+                id = $5`
+
+	_, err := db.ExecContext(ctx, stmt,
+		u.Email,
+		u.FirstName,
+		u.LastName,
+		time.Now(),
+		u.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Delete deletes the user record from db
+func (u *User) Delete() error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `delete from users where id = $1`
+
+	_, err := db.ExecContext(ctx, stmt, u.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type Token struct {
