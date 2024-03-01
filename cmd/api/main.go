@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/alibeksuleimenov/go-books-back-end/internal/data"
 	"github.com/alibeksuleimenov/go-books-back-end/internal/driver"
 	"log"
 	"net/http"
@@ -18,7 +19,7 @@ type Application struct {
 	Config   Config
 	InfoLog  *log.Logger
 	ErrorLog *log.Logger
-	DB       *driver.DB
+	Models   data.Models
 }
 
 // main is the main entry point of app
@@ -40,7 +41,7 @@ func main() {
 		Config:   config,
 		InfoLog:  infoLog,
 		ErrorLog: errorLog,
-		DB:       db,
+		Models:   data.New(db.SQL),
 	}
 
 	err = app.Serve()
