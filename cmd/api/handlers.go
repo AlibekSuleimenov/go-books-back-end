@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"net/http"
+	"time"
 )
 
 // JSONResponse
@@ -31,12 +33,41 @@ func (app *Application) Login(w http.ResponseWriter, r *http.Request) {
 		_ = app.writeJSON(w, http.StatusBadRequest, payload)
 	}
 
-	// TODO authenticate
-	app.InfoLog.Println(creds.Username, creds.Password)
+	// authenticate
+	// search for a user
+	user, err := app.Models.User.GetByEmail(creds.Username)
+	if err != nil {
+		app.errorJSON(w, errors.New("invalid username"))
+		return
+	}
+
+	// validate password
+	validPassword, err := user.PasswordMatches(creds.Password)
+	if err != nil || !validPassword {
+		app.errorJSON(w, errors.New("invalid password"))
+		return
+	}
+
+	// generate token
+	token, err := app.Models.Token.GenerateToken(user.ID, 24*time.Hour)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	// save token into db
+	err = app.Models.Token.Insert(*token, *user)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
 
 	// send back response
-	payload.Error = false
-	payload.Message = "Signed in"
+	payload = JSONResponse{
+		Error:   false,
+		Message: "Logged in successfully!",
+		Data:    Envelope{"token": token},
+	}
 
 	err = app.writeJSON(w, http.StatusOK, payload)
 	if err != nil {
