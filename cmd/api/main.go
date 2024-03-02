@@ -16,10 +16,11 @@ type Config struct {
 
 // Application is the type for sharing data across the app
 type Application struct {
-	Config   Config
-	InfoLog  *log.Logger
-	ErrorLog *log.Logger
-	Models   data.Models
+	Config      Config
+	InfoLog     *log.Logger
+	ErrorLog    *log.Logger
+	Models      data.Models
+	Environment string
 }
 
 // main is the main entry point of app
@@ -31,6 +32,8 @@ func main() {
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	dsn := os.Getenv("DSN")
+	environment := os.Getenv("ENV")
+
 	db, err := driver.ConnectPostgres(dsn)
 	if err != nil {
 		log.Fatal("Cannot connect to database")
@@ -38,10 +41,11 @@ func main() {
 	defer db.SQL.Close()
 
 	app := &Application{
-		Config:   config,
-		InfoLog:  infoLog,
-		ErrorLog: errorLog,
-		Models:   data.New(db.SQL),
+		Config:      config,
+		InfoLog:     infoLog,
+		ErrorLog:    errorLog,
+		Models:      data.New(db.SQL),
+		Environment: environment,
 	}
 
 	err = app.Serve()
