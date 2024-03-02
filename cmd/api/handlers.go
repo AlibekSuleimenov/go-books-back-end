@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"github.com/alibeksuleimenov/go-books-back-end/internal/data"
 	"net/http"
 	"time"
 )
@@ -98,4 +99,21 @@ func (app *Application) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
+}
+
+func (app *Application) AllUsers(w http.ResponseWriter, r *http.Request) {
+	var users data.User
+	all, err := users.GetAll()
+	if err != nil {
+		app.ErrorLog.Println(err)
+		return
+	}
+
+	payload := JSONResponse{
+		Error:   false,
+		Message: "success!",
+		Data:    Envelope{"users": all},
+	}
+
+	app.writeJSON(w, http.StatusOK, payload)
 }
