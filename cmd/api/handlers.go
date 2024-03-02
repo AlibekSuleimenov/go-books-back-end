@@ -66,7 +66,7 @@ func (app *Application) Login(w http.ResponseWriter, r *http.Request) {
 	payload = JSONResponse{
 		Error:   false,
 		Message: "Logged in successfully!",
-		Data:    Envelope{"token": token},
+		Data:    Envelope{"token": token, "user": user},
 	}
 
 	err = app.writeJSON(w, http.StatusOK, payload)
