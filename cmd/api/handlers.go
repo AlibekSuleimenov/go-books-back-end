@@ -3,7 +3,9 @@ package main
 import (
 	"errors"
 	"github.com/alibeksuleimenov/go-books-back-end/internal/data"
+	"github.com/go-chi/chi/v5"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -166,4 +168,20 @@ func (app *Application) EditUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusAccepted, payload)
+}
+
+func (app *Application) GetUser(w http.ResponseWriter, r *http.Request) {
+	userID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	user, err := app.Models.User.GetByID(userID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, user)
 }
