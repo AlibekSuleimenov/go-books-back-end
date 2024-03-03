@@ -9,13 +9,14 @@ import (
 	"time"
 )
 
-// JSONResponse
+// JSONResponse is the type for structuring JSON response
 type JSONResponse struct {
 	Error   bool        `json:"error"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
+// Envelope is a simple wrapper for JSON response
 type Envelope map[string]interface{}
 
 // Login is the handler used to authenticate users
@@ -83,6 +84,7 @@ func (app *Application) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Logout logs user out by deleting all tokens from db
 func (app *Application) Logout(w http.ResponseWriter, r *http.Request) {
 	var requestPayload struct {
 		Token string `json:"token"`
@@ -108,6 +110,7 @@ func (app *Application) Logout(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
 
+// AllUsers returns all records from users table
 func (app *Application) AllUsers(w http.ResponseWriter, r *http.Request) {
 	var users data.User
 	all, err := users.GetAll()
@@ -125,6 +128,7 @@ func (app *Application) AllUsers(w http.ResponseWriter, r *http.Request) {
 	app.writeJSON(w, http.StatusOK, payload)
 }
 
+// EditUser updates User and saves changes to the users table
 func (app *Application) EditUser(w http.ResponseWriter, r *http.Request) {
 	var user data.User
 
@@ -176,6 +180,7 @@ func (app *Application) EditUser(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusAccepted, payload)
 }
 
+// GetUser returns user from db by ID
 func (app *Application) GetUser(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -192,6 +197,7 @@ func (app *Application) GetUser(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusOK, user)
 }
 
+// DeleteUser removes user from db
 func (app *Application) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	var requestPayload struct {
 		ID int `json:"id"`
@@ -218,6 +224,7 @@ func (app *Application) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// LogUserOutAndSetInactive updates user to inactive and deletes all tokens from db
 func (app *Application) LogUserOutAndSetInactive(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
@@ -252,4 +259,27 @@ func (app *Application) LogUserOutAndSetInactive(w http.ResponseWriter, r *http.
 	}
 
 	_ = app.writeJSON(w, http.StatusAccepted, payload)
+}
+
+// ValidateToken validates user's token
+func (app *Application) ValidateToken(w http.ResponseWriter, r *http.Request) {
+	var requestPayload struct {
+		Token string `json:"token"`
+	}
+
+	err := app.readJSON(w, r, &requestPayload)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	valid := false
+	valid, _ = app.Models.Token.ValidToken(requestPayload.Token)
+
+	payload := JSONResponse{
+		Error: false,
+		Data:  valid,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
 }
