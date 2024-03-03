@@ -185,3 +185,29 @@ func (app *Application) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	_ = app.writeJSON(w, http.StatusOK, user)
 }
+
+func (app *Application) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	var requestPayload struct {
+		ID int `json:"id"`
+	}
+
+	err := app.readJSON(w, r, &requestPayload)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	err = app.Models.User.DeleteByID(requestPayload.ID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	payload := JSONResponse{
+		Error:   false,
+		Message: "user deleted",
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
+
+}
