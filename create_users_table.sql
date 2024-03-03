@@ -37,3 +37,6 @@ ALTER TABLE users
 
 create unique index users_email_index
     on public.users (email);
+
+alter table public.users
+    add user_active integer default 0 not null;
