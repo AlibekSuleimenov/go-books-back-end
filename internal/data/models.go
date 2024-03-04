@@ -20,14 +20,18 @@ var db *sql.DB
 func New(dbPool *sql.DB) Models {
 	db = dbPool
 	return Models{
-		User:  User{},
-		Token: Token{},
+		User:   User{},
+		Token:  Token{},
+		Book:   Book{},
+		Author: Author{},
 	}
 }
 
 type Models struct {
-	User  User
-	Token Token
+	User   User
+	Token  Token
+	Book   Book
+	Author Author
 }
 
 // User is a type for any User in app
@@ -282,7 +286,7 @@ func (u *User) PasswordMatches(plainText string) (bool, error) {
 	return true, nil
 }
 
-// Token is a type for a any token in database
+// Token is a type for an any token in database
 type Token struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"user_id"`
@@ -486,6 +490,7 @@ func (t *Token) ValidToken(plainText string) (bool, error) {
 	return true, nil
 }
 
+// DeleteTokensForUser deletes all user's tokens from db
 func (t *Token) DeleteTokensForUser(id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
