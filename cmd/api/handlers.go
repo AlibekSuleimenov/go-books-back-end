@@ -21,15 +21,15 @@ type Envelope map[string]interface{}
 
 // Login is the handler used to authenticate users
 func (app *Application) Login(w http.ResponseWriter, r *http.Request) {
-	type credentials struct {
+	type Credentials struct {
 		Username string `json:"email"`
 		Password string `json:"password"`
 	}
 
-	var creds credentials
+	var credentials Credentials
 	var payload JSONResponse
 
-	err := app.readJSON(w, r, &creds)
+	err := app.readJSON(w, r, &credentials)
 	if err != nil {
 		app.ErrorLog.Println(err)
 		payload.Error = true
@@ -39,14 +39,14 @@ func (app *Application) Login(w http.ResponseWriter, r *http.Request) {
 
 	// authenticate
 	// search for a user
-	user, err := app.Models.User.GetByEmail(creds.Username)
+	user, err := app.Models.User.GetByEmail(credentials.Username)
 	if err != nil {
 		app.errorJSON(w, errors.New("invalid username"))
 		return
 	}
 
 	// validate password
-	validPassword, err := user.PasswordMatches(creds.Password)
+	validPassword, err := user.PasswordMatches(credentials.Password)
 	if err != nil || !validPassword {
 		app.errorJSON(w, errors.New("invalid password"))
 		return
@@ -125,7 +125,7 @@ func (app *Application) AllUsers(w http.ResponseWriter, r *http.Request) {
 		Data:    Envelope{"users": all},
 	}
 
-	app.writeJSON(w, http.StatusOK, payload)
+	_ = app.writeJSON(w, http.StatusOK, payload)
 }
 
 // EditUser updates User and saves changes to the users table
@@ -279,6 +279,23 @@ func (app *Application) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	payload := JSONResponse{
 		Error: false,
 		Data:  valid,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
+}
+
+// AllBooks returns the list of all books
+func (app *Application) AllBooks(w http.ResponseWriter, r *http.Request) {
+	books, err := app.Models.Book.GetAll()
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	payload := JSONResponse{
+		Error:   false,
+		Message: "success",
+		Data:    Envelope{"books": books},
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
