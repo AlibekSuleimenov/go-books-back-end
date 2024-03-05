@@ -300,3 +300,21 @@ func (app *Application) AllBooks(w http.ResponseWriter, r *http.Request) {
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
+
+// OneBook returns a book model from db by book's slug
+func (app *Application) OneBook(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+
+	book, err := app.Models.Book.GetOneBySlug(slug)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	payload := JSONResponse{
+		Error: false,
+		Data:  book,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
+}
