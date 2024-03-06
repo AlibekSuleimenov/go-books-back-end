@@ -3,6 +3,7 @@ module github.com/alibeksuleimenov/go-books-back-end
 go 1.22.0
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2 // indirect
 	github.com/go-chi/chi/v5 v5.0.12 // indirect
 	github.com/go-chi/cors v1.2.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
