@@ -396,21 +396,21 @@ func (app *Application) EditBook(w http.ResponseWriter, r *http.Request) {
 			app.errorJSON(w, err)
 			return
 		}
+	}
 
-		if book.ID == 0 {
-			// adding a book
-			_, err := app.Models.Book.Insert(book)
-			if err != nil {
-				app.errorJSON(w, err)
-				return
-			}
-		} else {
-			// updating a book
-			err := book.Update()
-			if err != nil {
-				app.errorJSON(w, err)
-				return
-			}
+	if book.ID == 0 {
+		// adding a book
+		_, err := app.Models.Book.Insert(book)
+		if err != nil {
+			app.errorJSON(w, err)
+			return
+		}
+	} else {
+		// updating a book
+		err := book.Update()
+		if err != nil {
+			app.errorJSON(w, err)
+			return
 		}
 	}
 
@@ -420,4 +420,26 @@ func (app *Application) EditBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusAccepted, payload)
+}
+
+// BookByID return a single book by ID
+func (app *Application) BookByID(w http.ResponseWriter, r *http.Request) {
+	bookID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	book, err := app.Models.Book.GetOneById(bookID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	payload := JSONResponse{
+		Error: false,
+		Data:  book,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, payload)
 }
